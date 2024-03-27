@@ -114,6 +114,7 @@ const FeaturedPost = () => {
 
   return (
     <section className="w-[100%] flex flex-col items-center mt-[100px]">
+      <h1>Test</h1>
       <div className="w-[50%]   pb-6">
         <input
           ref={fileInputImgRef}
