@@ -7,8 +7,8 @@ const Logo = () => {
       <a className="text-2xl font-bold flex items-center">
         <SparklesIcon className="h-6 text-[#031e79] dark:text-[#c4d1fc] mr-2" />
         {/* Spark */}
-        <span className="text-[#031e79] dark:text-[#c4d1fc]">Admin</span>
-        <span className="text-[#FF47C7]">Site</span>
+        <span className="text-[#031e79] dark:text-[#c4d1fc]">QWER</span>
+        <span className="text-[#FF47C7]">Admin</span>
       </a>
     </Link>
   );

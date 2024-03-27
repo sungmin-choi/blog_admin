@@ -12,7 +12,7 @@ const URL = 'https://sparkblog.vercel.app';
 
 const SEO: React.FC<ISEO> = ({
   description = 'A starter template designed to get you up and running with a Next.js-powered blog that uses MDX for content.',
-  title = 'Spark Blog | Get started building with Next.JS + MDX',
+  title = 'QWER Blog Admin Site | Get started building with Next.JS + MDX',
   urlImage = `${URL}/images/preview-light.jpeg`,
 }) => {
   const HTMLMetaTags = [

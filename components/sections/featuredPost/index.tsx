@@ -1,7 +1,6 @@
 // import { postBlog } from 'lib/mdx';
 import axios from 'axios';
 import matter from 'gray-matter';
-import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { getS3SignedUrl, postBlog } from 'service';
 import { v4 as uuidv4 } from 'uuid';
@@ -114,120 +113,109 @@ const FeaturedPost = () => {
   };
 
   return (
-    <section className="py-20">
-      <div className="container mx-auto flex flex-col md:flex-row md:items-center gap-4 px-4 md:px-10">
-        <div className="w-[85%] md:w-1/2 pb-6 md:pb-0">
-          <input
-            ref={fileInputImgRef}
-            type="file"
-            id="image-upload"
-            className="image-upload"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={handleImageChange}
-          />
-          <h2 className="text-2xl font-bold">이미지 업로드해 주세요</h2>
-          {!previewUrl && (
-            <label
-              htmlFor="image-upload"
-              className="rounded-lg py-2 px-4 text-white bg-pink-700 "
-            >
-              이미지 업로드
-            </label>
-          )}
+    <section className="w-[100%] flex flex-col items-center mt-[100px]">
+      <div className="w-[50%]   pb-6">
+        <input
+          ref={fileInputImgRef}
+          type="file"
+          id="image-upload"
+          className="image-upload"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handleImageChange}
+        />
+        <h2 className="text-2xl font-bold">이미지 업로드해 주세요</h2>
+        {!previewUrl && (
+          <label
+            htmlFor="image-upload"
+            className="rounded-lg py-2 px-4 text-white bg-pink-700 "
+          >
+            이미지 업로드
+          </label>
+        )}
 
-          {previewUrl && (
-            <div>
-              {isUploadedImg ? (
-                <button className="rounded-lg py-2 px-4 text-white bg-pink-700 ">
-                  업로드 성공
-                </button>
-              ) : (
-                <button className="rounded-lg py-2 px-4 text-white bg-pink-700 ">
-                  S3로 업로드
-                </button>
-              )}
-              <button
-                onClick={() => cancelUpload()}
-                className="rounded-lg py-2 px-4 ml-3 text-white bg-red-600 "
-              >
-                삭제하기
+        {previewUrl && (
+          <div>
+            {isUploadedImg ? (
+              <button className="rounded-lg py-2 px-4 text-white bg-pink-700 ">
+                업로드 성공
               </button>
-            </div>
-          )}
-          {previewUrl && (
-            <div>
-              <h2 className="text-2xl font-bold">이미지 썸네일:</h2>
-              <img
-                src={previewUrl}
-                alt="Preview"
-                style={{ maxWidth: '100%', maxHeight: '300px' }}
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="w-[85%] md:w-1/2 pb-6 md:pb-0">
-          <input
-            ref={fileInputMDXRef}
-            type="file"
-            id="mdx-upload"
-            className="mdx-upload"
-            accept=".md"
-            style={{ display: 'none' }}
-            onChange={handleMDXChange}
-          />
-          <h2 className="text-2xl font-bold">
-            {' '}
-            {isUploadedMDX ? 'MD 파일 업로드 성공' : 'MD 파일 업로드해 주세요'}
-          </h2>
-          {!previewMDX && (
-            <label
-              htmlFor="mdx-upload"
-              className="rounded-lg py-2 px-4 text-white bg-pink-700 "
-            >
-              MD 파일 업로드
-            </label>
-          )}
-
-          {previewMDX && (
-            <div>
-              {isUploadedMDX ? (
-                <button className="rounded-lg py-2 px-4 text-white bg-pink-700 ">
-                  업로드 성공
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleUploadMDX()}
-                  className="rounded-lg py-2 px-4 text-white bg-pink-700 "
-                >
-                  S3로 업로드
-                </button>
-              )}
-
-              <button
-                onClick={() => cancelUploadMDX()}
-                className="rounded-lg py-2 px-4 ml-3 text-white bg-red-600 "
-              >
-                삭제하기
+            ) : (
+              <button className="rounded-lg py-2 px-4 text-white bg-pink-700 ">
+                S3로 업로드
               </button>
-            </div>
-          )}
-          {previewMDX && (
-            <div>
-              <h4 className="text-2xl font-bold">{previewMDX}</h4>
-            </div>
-          )}
-        </div>
+            )}
+            <button
+              onClick={() => cancelUpload()}
+              className="rounded-lg py-2 px-4 ml-3 text-white bg-red-600 "
+            >
+              삭제하기
+            </button>
+          </div>
+        )}
+        {previewUrl && (
+          <div>
+            <h2 className="text-2xl font-bold">이미지 썸네일:</h2>
+            <img
+              src={previewUrl}
+              alt="Preview"
+              style={{ maxWidth: '100%', maxHeight: '300px' }}
+            />
+          </div>
+        )}
+      </div>
 
-        <div className="relative rounded-lg w-full h-96 md:h-80 lg:h-[70vh] shadow-xl overflow-hidden bg-slate-100 dark:bg-slate-800">
-          <Image
-            src="/images/rest_5.jpg"
-            layout="fill"
-            alt="Featured Post"
-            objectFit="cover"
-          />
-        </div>
+      <div className="w-[50%] pb-6 ">
+        <input
+          ref={fileInputMDXRef}
+          type="file"
+          id="mdx-upload"
+          className="mdx-upload"
+          accept=".md"
+          style={{ display: 'none' }}
+          onChange={handleMDXChange}
+        />
+        <h2 className="text-2xl font-bold">
+          {' '}
+          {isUploadedMDX ? 'MD 파일 업로드 성공' : 'MD 파일 업로드해 주세요'}
+        </h2>
+        {!previewMDX && (
+          <label
+            htmlFor="mdx-upload"
+            className="rounded-lg py-2 px-4 text-white bg-pink-700 "
+          >
+            MD 파일 업로드
+          </label>
+        )}
+
+        {previewMDX && (
+          <div>
+            {isUploadedMDX ? (
+              <button className="rounded-lg py-2 px-4 text-white bg-pink-700 ">
+                업로드 성공
+              </button>
+            ) : (
+              <button
+                onClick={() => handleUploadMDX()}
+                className="rounded-lg py-2 px-4 text-white bg-pink-700 "
+              >
+                S3로 업로드
+              </button>
+            )}
+
+            <button
+              onClick={() => cancelUploadMDX()}
+              className="rounded-lg py-2 px-4 ml-3 text-white bg-red-600 "
+            >
+              삭제하기
+            </button>
+          </div>
+        )}
+        {previewMDX && (
+          <div>
+            <h4 className="text-2xl font-bold">{previewMDX}</h4>
+          </div>
+        )}
       </div>
     </section>
   );

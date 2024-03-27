@@ -1,6 +1,8 @@
-import React, { ComponentPropsWithoutRef } from 'react';
 import Footer from '@/components/navigation/footer';
 import Header from '@/components/navigation/header';
+import React, { ComponentPropsWithoutRef } from 'react';
+import FeaturedPost from '../sections/featuredPost';
+import SEO from '../sections/seo';
 
 interface IMainLayout extends ComponentPropsWithoutRef<'div'> {}
 
@@ -9,7 +11,10 @@ const MainLayout: React.FC<IMainLayout> = ({ children }) => {
     <>
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow">{children}</main>
+        <main className="flex flex-grow w-[100%] justify-center ">
+          <SEO />
+          <FeaturedPost />
+        </main>
         <Footer />
       </div>
     </>

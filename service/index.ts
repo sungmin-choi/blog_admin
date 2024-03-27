@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const client = axios.create({
-  baseURL: 'https://fczqbx2rci.execute-api.ap-northeast-2.amazonaws.com',
+  baseURL: 'https://api.qwerblog.com',
   headers: {
     'Content-Type': `application/json;charset=UTF-8`,
     Accept: 'application/json',

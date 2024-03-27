@@ -1,0 +1,28 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo Installing source NPM dependencies...
+      - npm install
+  # pre_build:  유닛 테스트 작성 안했기 때문에 생략
+  #   commands:
+  #     - echo Running unit tests...
+  #     - npm test
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Next.js app...
+      - npm run build
+  post_build:
+    commands:
+      - echo Build completed on `date`
+artifacts:
+  files:
+    - '**/*'
+  base-directory: 'out' # Next.js의 빌드 출력 폴더
+cache:
+  paths:
+    - 'node_modules/**/*'
