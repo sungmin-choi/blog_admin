@@ -6,17 +6,23 @@ import { getS3SignedUrl, postBlog } from 'service';
 import { v4 as uuidv4 } from 'uuid';
 
 const S3ObjUrl = 'https://p1-mdx.s3.ap-northeast-2.amazonaws.com';
+const S3ImageObjUrl = 'https://p1-image.s3.ap-northeast-2.amazonaws.com';
 
 const FeaturedPost = () => {
   const [selectedFile, setSelectedFile] = useState<any>(null);
   const [previewUrl, setPreviewUrl] = useState<any>(null);
-  const [isUploadedImg, setIsUploadedImg] = useState<boolean>(false);
+
   const fileInputImgRef = useRef<HTMLInputElement>(null);
+  const [isUploadedImg, setIsUploadedImg] = useState<boolean>(false);
+  const [isUploadingImg, setIsUploadingImg] = useState<boolean>(false);
+  const [uploadedImgUrl, setUploadedImgUrl] = useState<string>('');
+
   const fileInputMDXRef = useRef<HTMLInputElement>(null);
 
   const [selectedMDXdFile, setSelectedMDXFile] = useState<any>(null);
   const [previewMDX, setPreviewMDX] = useState<any>(null);
   const [isUploadedMDX, setIsUploadedMDX] = useState<boolean>(false);
+  const [isUploadingMDX, setIsUploadingMDX] = useState<boolean>(false);
 
   const [metaData, setMetaData] = useState<any>(null);
 
@@ -41,6 +47,8 @@ const FeaturedPost = () => {
       fileInputImgRef.current.value = '';
     }
     setMetaData(null);
+    setUploadedImgUrl('');
+    setIsUploadedImg(false);
   };
 
   const cancelUploadMDX = () => {
@@ -68,6 +76,38 @@ const FeaturedPost = () => {
     }
   };
 
+  const handleUploadImage = async () => {
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('Content-Type', selectedFile.type);
+      try {
+        setIsUploadingImg(true);
+
+        const uuid = uuidv4();
+
+        const id = uuid.substring(0, 5);
+
+        const res = await getS3SignedUrl(
+          id + selectedFile.name,
+          'p1-image',
+          selectedFile.type
+        );
+
+        await axios.put(res.data.url, selectedFile, {
+          headers: { 'Content-Type': 'image/png' },
+        });
+        const objUrl = `${S3ImageObjUrl}/${id + selectedFile.name}`;
+        setIsUploadedImg(true);
+        setUploadedImgUrl(objUrl);
+      } catch (err: any) {
+        console.log(err);
+      } finally {
+        setIsUploadingImg(false);
+      }
+    }
+  };
+
   const handleMDXChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       const file = event.target.files[0];
@@ -90,12 +130,19 @@ const FeaturedPost = () => {
       const formData = new FormData();
       formData.append('file', selectedMDXdFile);
       try {
+        setIsUploadingMDX(true);
         const uuid = uuidv4();
 
         const id = uuid.substring(0, 5);
 
-        const res = await getS3SignedUrl(id + previewMDX);
+        // 서명된 S3 url 받아오기
+        const res = await getS3SignedUrl(
+          id + previewMDX,
+          'p1-mdx',
+          'text/markdown'
+        );
         const objUrl = `${S3ObjUrl}/${id + previewMDX}`;
+        // md file S3에 저장
         await axios.put(res.data.url, selectedMDXdFile);
 
         const payload = {
@@ -108,14 +155,15 @@ const FeaturedPost = () => {
         setIsUploadedMDX(true);
       } catch (err: any) {
         console.log(err);
+      } finally {
+        setIsUploadingMDX(false);
       }
     }
   };
 
   return (
     <section className="w-[100%] flex flex-col items-center mt-[100px]">
-      <h1>Test5</h1>
-      <div className="w-[50%]   pb-6">
+      <div className="w-[50%] pb-6">
         <input
           ref={fileInputImgRef}
           type="file"
@@ -125,7 +173,13 @@ const FeaturedPost = () => {
           style={{ display: 'none' }}
           onChange={handleImageChange}
         />
-        <h2 className="text-2xl font-bold">이미지 업로드해 주세요</h2>
+        <h2 className="text-2xl font-bold">
+          {isUploadedImg
+            ? '이미지 업로드 성공'
+            : isUploadingImg
+            ? '이미지 업로드중...'
+            : '이미지 업로드해 주세요'}
+        </h2>
         {!previewUrl && (
           <label
             htmlFor="image-upload"
@@ -142,8 +196,11 @@ const FeaturedPost = () => {
                 업로드 성공
               </button>
             ) : (
-              <button className="rounded-lg py-2 px-4 text-white bg-pink-700 ">
-                S3로 업로드
+              <button
+                onClick={() => handleUploadImage()}
+                className="rounded-lg py-2 px-4 text-white bg-pink-700 "
+              >
+                {isUploadingImg ? 'S3로 업로드 중...' : 'S3로 업로드'}
               </button>
             )}
             <button
@@ -152,6 +209,12 @@ const FeaturedPost = () => {
             >
               삭제하기
             </button>
+          </div>
+        )}
+        {uploadedImgUrl && (
+          <div>
+            <h2 className="text-2xl font-bold">업로드 된 이미지 URL:</h2>
+            {uploadedImgUrl}
           </div>
         )}
         {previewUrl && (
@@ -178,7 +241,11 @@ const FeaturedPost = () => {
         />
         <h2 className="text-2xl font-bold">
           {' '}
-          {isUploadedMDX ? 'MD 파일 업로드 성공' : 'MD 파일 업로드해 주세요'}
+          {isUploadedMDX
+            ? 'MD 파일 업로드 성공'
+            : isUploadingMDX
+            ? 'MD 파일 업로드중...'
+            : 'MD 파일 업로드해 주세요'}
         </h2>
         {!previewMDX && (
           <label
@@ -200,7 +267,7 @@ const FeaturedPost = () => {
                 onClick={() => handleUploadMDX()}
                 className="rounded-lg py-2 px-4 text-white bg-pink-700 "
               >
-                S3로 업로드
+                {isUploadingMDX ? 'S3에 업로드중...' : 'S3로 업로드'}
               </button>
             )}
 

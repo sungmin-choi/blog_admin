@@ -10,9 +10,15 @@ export const client = axios.create({
   },
 });
 
-export const getS3SignedUrl = async (fileName: string) => {
+export const getS3SignedUrl = async (
+  fileName: string,
+  bucketName: string,
+  contentType: string
+) => {
   try {
-    const res = await client.get(`/s3Url?fileName=${fileName}`);
+    const res = await client.get(
+      `/s3Url?fileName=${fileName}&bucketName=${bucketName}&contentType=${contentType}`
+    );
 
     return res;
   } catch (error: any) {
