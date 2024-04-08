@@ -9,11 +9,15 @@
     "prettier": "prettier --write ."
   },
   "dependencies": {
+    "@aws-amplify/ui-react": "^6.1.6",
     "@heroicons/react": "^2.0.13",
+    "aws-amplify": "^6.0.27",
     "axios": "^1.6.8",
+    "crypto": "^1.0.1",
     "glob": "^7.2.0",
     "gray-matter": "^4.0.3",
-    "next": "12.0.8",
+    "next": "12.2.5",
+    "next-auth": "^4.24.7",
     "next-mdx-remote": "^3.0.8",
     "next-themes": "^0.2.1",
     "react": "17.0.2",

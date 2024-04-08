@@ -1,17 +1,17 @@
 ---
-title: Next JS- How To Enable Google One Tap Sign In With Next.js and Firebase
+title: 블로그 타이틀
 tags:
   - react
   - Nextjs
   - Oauth
   - Firebaseauthentication
   - Google Auth
-date: 2019-10-24
-excerpt: In this tutorial we’ll walk through the implementation of Google one tap sign in using NextJS and Firebase. The best part is, it’s easy!
-image: '/images/google_one_tap.png'
+date: 2024-04-03
+excerpt: 블로그 설명
+image: 'https://p1-image.s3.ap-northeast-2.amazonaws.com/4f3e2QWER.jpg'
 ---
 
-Google one tap sign in is a great feature that allows your users to log into their accounts without having the password. Of course this has the added benefit of making the sign in process more efficient, but it also reduces the number of inputs required when entering username and password.
+Google one tap sign in is a great feature that allows your users to log into their accounts without having the password. Of course this has the added benefit of making the sign in process more efficient, but it also reduces the number of inputs required when entering username and passdajfdjkahskfda
 
 In this tutorial we’ll walk through the implementation of Google one tap sign in using NextJS and Firebase. The best part is: it’s easy!
 
@@ -188,4 +188,8 @@ useEffect(() => {
 
 ## The Output:
 
-<Image src="/images/google_one_tap_output.jpeg" width={1703} height={980} />
+<Image
+  src="https://p1-image.s3.ap-northeast-2.amazonaws.com/4f3e2QWER.jpg"
+  width={1703}
+  height={980}
+/>

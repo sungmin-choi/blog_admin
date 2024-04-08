@@ -4,6 +4,7 @@ import matter from 'gray-matter';
 import { useRef, useState } from 'react';
 import { getS3SignedUrl, postBlog } from 'service';
 import { v4 as uuidv4 } from 'uuid';
+import LoginForm from '../Auth/LoginForm';
 
 const S3ObjUrl = 'https://p1-mdx.s3.ap-northeast-2.amazonaws.com';
 const S3ImageObjUrl = 'https://p1-image.s3.ap-northeast-2.amazonaws.com';
@@ -163,6 +164,7 @@ const FeaturedPost = () => {
 
   return (
     <section className="w-[100%] flex flex-col items-center mt-[100px]">
+      <LoginForm />
       <div className="w-[50%] pb-6">
         <input
           ref={fileInputImgRef}
@@ -185,7 +187,7 @@ const FeaturedPost = () => {
             htmlFor="image-upload"
             className="rounded-lg py-2 px-4 text-white bg-pink-700 "
           >
-            이미지 업로드
+            이미지 업로드!!
           </label>
         )}
 
