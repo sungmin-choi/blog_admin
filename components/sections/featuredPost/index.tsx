@@ -1,10 +1,46 @@
 // import { postBlog } from 'lib/mdx';
+import { Amplify } from 'aws-amplify';
+import {
+  AuthUser,
+  getCurrentUser,
+  signInWithRedirect,
+  signOut,
+} from 'aws-amplify/auth';
+import { Hub } from 'aws-amplify/utils';
 import axios from 'axios';
 import matter from 'gray-matter';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getS3SignedUrl, postBlog } from 'service';
 import { v4 as uuidv4 } from 'uuid';
-import LoginForm from '../Auth/LoginForm';
+
+Amplify.configure(
+  {
+    Auth: {
+      Cognito: {
+        userPoolClientId: 'l0q3ln5g3qc5bmp16j5bkgnee',
+        userPoolId: 'ap-northeast-2_K8rKOKOQx',
+        loginWith: {
+          // Optional
+
+          oauth: {
+            domain: 'admin.auth.ap-northeast-2.amazoncognito.com',
+            scopes: ['openid email '],
+            redirectSignIn: [
+              'http://localhost:3000/',
+              'https://admin.qwerblog.com/',
+            ],
+            redirectSignOut: [
+              'http://localhost:3000/',
+              'https://admin.qwerblog.com/',
+            ],
+            responseType: 'code',
+          },
+        },
+      },
+    },
+  },
+  { ssr: true }
+);
 
 const S3ObjUrl = 'https://p1-mdx.s3.ap-northeast-2.amazonaws.com';
 const S3ImageObjUrl = 'https://p1-image.s3.ap-northeast-2.amazonaws.com';
@@ -26,6 +62,45 @@ const FeaturedPost = () => {
   const [isUploadingMDX, setIsUploadingMDX] = useState<boolean>(false);
 
   const [metaData, setMetaData] = useState<any>(null);
+
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [error, setError] = useState<unknown>(null);
+  const [customState, setCustomState] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = Hub.listen('auth', ({ payload }) => {
+      switch (payload.event) {
+        case 'signInWithRedirect':
+          getUser();
+          break;
+        case 'signInWithRedirect_failure':
+          console.log(payload.data);
+          console.log(payload.event);
+          console.log(payload.message);
+          setError(payload.data);
+          break;
+        case 'customOAuthState':
+          setCustomState(payload.data);
+          break;
+      }
+    });
+
+    getUser();
+
+    return unsubscribe;
+  }, []);
+
+  console.log(error);
+
+  const getUser = async (): Promise<void> => {
+    try {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    } catch (error: any) {
+      console.error(error);
+      console.log(error.message);
+    }
+  };
 
   const getMDfileMetaData = (source: string) => {
     const { content, data } = matter(source);
@@ -162,131 +237,143 @@ const FeaturedPost = () => {
     }
   };
 
+  console.log(user);
+
   return (
     <section className="w-[100%] flex flex-col items-center mt-[100px]">
-      <LoginForm />
-      <div className="w-[50%] pb-6">
-        <input
-          ref={fileInputImgRef}
-          type="file"
-          id="image-upload"
-          className="image-upload"
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={handleImageChange}
-        />
-        <h2 className="text-2xl font-bold">
-          {isUploadedImg
-            ? '이미지 업로드 성공'
-            : isUploadingImg
-            ? '이미지 업로드중...'
-            : '이미지 업로드해 주세요'}
-        </h2>
-        {!previewUrl && (
-          <label
-            htmlFor="image-upload"
-            className="rounded-lg py-2 px-4 text-white bg-pink-700 "
-          >
-            이미지 업로드!!
-          </label>
-        )}
-
-        {previewUrl && (
-          <div>
-            {isUploadedImg ? (
-              <button className="rounded-lg py-2 px-4 text-white bg-pink-700 ">
-                업로드 성공
-              </button>
-            ) : (
-              <button
-                onClick={() => handleUploadImage()}
-                className="rounded-lg py-2 px-4 text-white bg-pink-700 "
-              >
-                {isUploadingImg ? 'S3로 업로드 중...' : 'S3로 업로드'}
-              </button>
-            )}
-            <button
-              onClick={() => cancelUpload()}
-              className="rounded-lg py-2 px-4 ml-3 text-white bg-red-600 "
-            >
-              삭제하기
-            </button>
-          </div>
-        )}
-        {uploadedImgUrl && (
-          <div>
-            <h2 className="text-2xl font-bold">업로드 된 이미지 URL:</h2>
-            {uploadedImgUrl}
-          </div>
-        )}
-        {previewUrl && (
-          <div>
-            <h2 className="text-2xl font-bold">이미지 썸네일:</h2>
-            <img
-              src={previewUrl}
-              alt="Preview"
-              style={{ maxWidth: '100%', maxHeight: '300px' }}
+      {user ? (
+        <>
+          <div className="w-[50%] pb-6">
+            <button onClick={() => signOut()}>로그아웃</button>
+            <input
+              ref={fileInputImgRef}
+              type="file"
+              id="image-upload"
+              className="image-upload"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleImageChange}
             />
-          </div>
-        )}
-      </div>
-
-      <div className="w-[50%] pb-6 ">
-        <input
-          ref={fileInputMDXRef}
-          type="file"
-          id="mdx-upload"
-          className="mdx-upload"
-          accept=".md"
-          style={{ display: 'none' }}
-          onChange={handleMDXChange}
-        />
-        <h2 className="text-2xl font-bold">
-          {' '}
-          {isUploadedMDX
-            ? 'MD 파일 업로드 성공'
-            : isUploadingMDX
-            ? 'MD 파일 업로드중...'
-            : 'MD 파일 업로드해 주세요'}
-        </h2>
-        {!previewMDX && (
-          <label
-            htmlFor="mdx-upload"
-            className="rounded-lg py-2 px-4 text-white bg-pink-700 "
-          >
-            MD 파일 업로드
-          </label>
-        )}
-
-        {previewMDX && (
-          <div>
-            {isUploadedMDX ? (
-              <button className="rounded-lg py-2 px-4 text-white bg-pink-700 ">
-                업로드 성공
-              </button>
-            ) : (
-              <button
-                onClick={() => handleUploadMDX()}
+            <h2 className="text-2xl font-bold">
+              {isUploadedImg
+                ? '이미지 업로드 성공'
+                : isUploadingImg
+                ? '이미지 업로드중...'
+                : '이미지 업로드해 주세요'}
+            </h2>
+            {!previewUrl && (
+              <label
+                htmlFor="image-upload"
                 className="rounded-lg py-2 px-4 text-white bg-pink-700 "
               >
-                {isUploadingMDX ? 'S3에 업로드중...' : 'S3로 업로드'}
-              </button>
+                이미지 업로드!!
+              </label>
             )}
 
-            <button
-              onClick={() => cancelUploadMDX()}
-              className="rounded-lg py-2 px-4 ml-3 text-white bg-red-600 "
-            >
-              삭제하기
-            </button>
+            {previewUrl && (
+              <div>
+                {isUploadedImg ? (
+                  <button className="rounded-lg py-2 px-4 text-white bg-pink-700 ">
+                    업로드 성공
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleUploadImage()}
+                    className="rounded-lg py-2 px-4 text-white bg-pink-700 "
+                  >
+                    {isUploadingImg ? 'S3로 업로드 중...' : 'S3로 업로드'}
+                  </button>
+                )}
+                <button
+                  onClick={() => cancelUpload()}
+                  className="rounded-lg py-2 px-4 ml-3 text-white bg-red-600 "
+                >
+                  삭제하기
+                </button>
+              </div>
+            )}
+            {uploadedImgUrl && (
+              <div>
+                <h2 className="text-2xl font-bold">업로드 된 이미지 URL:</h2>
+                {uploadedImgUrl}
+              </div>
+            )}
+            {previewUrl && (
+              <div>
+                <h2 className="text-2xl font-bold">이미지 썸네일:</h2>
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  style={{ maxWidth: '100%', maxHeight: '300px' }}
+                />
+              </div>
+            )}
           </div>
-        )}
-        {previewMDX && (
-          <div>
-            <h4 className="text-2xl font-bold">{previewMDX}</h4>
+
+          <div className="w-[50%] pb-6 ">
+            <input
+              ref={fileInputMDXRef}
+              type="file"
+              id="mdx-upload"
+              className="mdx-upload"
+              accept=".md"
+              style={{ display: 'none' }}
+              onChange={handleMDXChange}
+            />
+            <h2 className="text-2xl font-bold">
+              {' '}
+              {isUploadedMDX
+                ? 'MD 파일 업로드 성공'
+                : isUploadingMDX
+                ? 'MD 파일 업로드중...'
+                : 'MD 파일 업로드해 주세요'}
+            </h2>
+            {!previewMDX && (
+              <label
+                htmlFor="mdx-upload"
+                className="rounded-lg py-2 px-4 text-white bg-pink-700 "
+              >
+                MD 파일 업로드
+              </label>
+            )}
+
+            {previewMDX && (
+              <div>
+                {isUploadedMDX ? (
+                  <button className="rounded-lg py-2 px-4 text-white bg-pink-700 ">
+                    업로드 성공
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleUploadMDX()}
+                    className="rounded-lg py-2 px-4 text-white bg-pink-700 "
+                  >
+                    {isUploadingMDX ? 'S3에 업로드중...' : 'S3로 업로드'}
+                  </button>
+                )}
+
+                <button
+                  onClick={() => cancelUploadMDX()}
+                  className="rounded-lg py-2 px-4 ml-3 text-white bg-red-600 "
+                >
+                  삭제하기
+                </button>
+              </div>
+            )}
+            {previewMDX && (
+              <div>
+                <h4 className="text-2xl font-bold">{previewMDX}</h4>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      ) : (
+        <>
+          <button onClick={() => signInWithRedirect()}>
+            Cognito 활용한 로그인
+          </button>
+        </>
+      )}
     </section>
   );
 };

@@ -1,6 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { useEffect, useState } from 'react';
-
+import { Amplify } from 'aws-amplify';
 import {
   AuthUser,
   getCurrentUser,
@@ -8,6 +7,36 @@ import {
   signOut,
 } from 'aws-amplify/auth';
 import { Hub } from 'aws-amplify/utils';
+import { useEffect, useState } from 'react';
+
+Amplify.configure(
+  {
+    Auth: {
+      Cognito: {
+        userPoolClientId: 'l0q3ln5g3qc5bmp16j5bkgnee',
+        userPoolId: 'ap-northeast-2_K8rKOKOQx',
+        loginWith: {
+          // Optional
+
+          oauth: {
+            domain: 'admin.auth.ap-northeast-2.amazoncognito.com',
+            scopes: ['openid email '],
+            redirectSignIn: [
+              'http://localhost:3000/',
+              'https://admin.qwerblog.com/',
+            ],
+            redirectSignOut: [
+              'http://localhost:3000/',
+              'https://admin.qwerblog.com/',
+            ],
+            responseType: 'code',
+          },
+        },
+      },
+    },
+  },
+  { ssr: true }
+);
 
 const LoginForm = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -19,7 +48,7 @@ const LoginForm = () => {
       switch (payload.event) {
         case 'signInWithRedirect':
           console.log(payload.event);
-          // getUser();
+          getUser();
           break;
         case 'signInWithRedirect_failure':
           setError('An error has occurred during the Oauth flow.');
