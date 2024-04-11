@@ -1,28 +1,51 @@
 import MainLayout from '@/components/layout';
 import FeaturedPost from '@/components/sections/featuredPost';
-import { getAllPosts } from 'lib/mdx';
-import { IPostMeta } from 'types';
-import { NextPageWithLayout } from './page';
+import { Amplify } from 'aws-amplify';
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { getParameter } from 'service';
 
-interface IHome {
-  postsMeta: IPostMeta[];
+export async function getServerSideProps() {
+  const res = await getParameter();
+
+  return {
+    props: { res: res.data }, // 필요한 프롭스 반환
+  };
 }
 
-const Home: NextPageWithLayout<IHome> = ({ postsMeta }) => {
+const Home = ({ res }: InferGetServerSidePropsType<GetServerSideProps>) => {
+  Amplify.configure(
+    {
+      Auth: {
+        Cognito: {
+          userPoolClientId: res.userPoolClientId,
+          userPoolId: res.userPoolId,
+          loginWith: {
+            // Optional
+
+            oauth: {
+              domain: res.cognitoDomain,
+              scopes: ['openid email '],
+              redirectSignIn: [
+                'http://localhost:3000/',
+                'https://admin.qwerblog.com/',
+              ],
+              redirectSignOut: [
+                'http://localhost:3000/',
+                'https://admin.qwerblog.com/',
+              ],
+              responseType: 'code',
+            },
+          },
+        },
+      },
+    },
+    { ssr: true }
+  );
   return (
-    <>
-      <FeaturedPost />
-    </>
+    <MainLayout>
+      {/*  */}
+      <FeaturedPost params={res} />
+    </MainLayout>
   );
 };
 export default Home;
-
-Home.getLayout = (page) => <MainLayout>{page}</MainLayout>;
-
-export async function getStaticProps() {
-  const postsMeta = getAllPosts()
-    .slice(0, 9)
-    .map((post) => post.meta);
-
-  return { props: { postsMeta } };
-}

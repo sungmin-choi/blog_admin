@@ -26,6 +26,16 @@ export const getS3SignedUrl = async (
   }
 };
 
+export const getParameter = async () => {
+  try {
+    const res = await client.get(`/ssm`);
+
+    return res;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
 export const postBlog = async (payload: any) => {
   try {
     const res = await client.post(`/blog`, payload);

@@ -1,5 +1,4 @@
 // import { postBlog } from 'lib/mdx';
-import { Amplify } from 'aws-amplify';
 import {
   AuthUser,
   getCurrentUser,
@@ -13,39 +12,12 @@ import { useEffect, useRef, useState } from 'react';
 import { getS3SignedUrl, postBlog } from 'service';
 import { v4 as uuidv4 } from 'uuid';
 
-Amplify.configure(
-  {
-    Auth: {
-      Cognito: {
-        userPoolClientId: 'l0q3ln5g3qc5bmp16j5bkgnee',
-        userPoolId: 'ap-northeast-2_K8rKOKOQx',
-        loginWith: {
-          // Optional
+const FeaturedPost = (props: any) => {
+  const { params } = props;
 
-          oauth: {
-            domain: 'admin.auth.ap-northeast-2.amazoncognito.com',
-            scopes: ['openid email '],
-            redirectSignIn: [
-              'http://localhost:3000/',
-              'https://admin.qwerblog.com/',
-            ],
-            redirectSignOut: [
-              'http://localhost:3000/',
-              'https://admin.qwerblog.com/',
-            ],
-            responseType: 'code',
-          },
-        },
-      },
-    },
-  },
-  { ssr: true }
-);
+  const S3ObjUrl = `https://${params.MDBucketName}.s3.${params.region}.amazonaws.com`;
+  const S3ImageObjUrl = `https://${params.ImageBucketName}.s3.${params.region}.amazonaws.com`;
 
-const S3ObjUrl = 'https://p1-mdx.s3.ap-northeast-2.amazonaws.com';
-const S3ImageObjUrl = 'https://p1-image.s3.ap-northeast-2.amazonaws.com';
-
-const FeaturedPost = () => {
   const [selectedFile, setSelectedFile] = useState<any>(null);
   const [previewUrl, setPreviewUrl] = useState<any>(null);
 
@@ -89,8 +61,6 @@ const FeaturedPost = () => {
 
     return unsubscribe;
   }, []);
-
-  console.log(error);
 
   const getUser = async (): Promise<void> => {
     try {
@@ -160,16 +130,20 @@ const FeaturedPost = () => {
       try {
         setIsUploadingImg(true);
 
+        // uuidv4 라이브러리 활용하여 유니크한 id 생성.
         const uuid = uuidv4();
 
         const id = uuid.substring(0, 5);
 
+        // getS3SignedUrl API 함수를 활용하여 서명된 URL 가져오는 함수
         const res = await getS3SignedUrl(
           id + selectedFile.name,
-          'p1-image',
+          params.ImageBucketName, // 버킷 네임
           selectedFile.type
         );
 
+        // 성공적으로 서명된 url 받아온 후 image 파일 업로드
+        // 'Content-Type': 'image/png'
         await axios.put(res.data.url, selectedFile, {
           headers: { 'Content-Type': 'image/png' },
         });
@@ -214,7 +188,7 @@ const FeaturedPost = () => {
         // 서명된 S3 url 받아오기
         const res = await getS3SignedUrl(
           id + previewMDX,
-          'p1-mdx',
+          params.MDBucketName,
           'text/markdown'
         );
         const objUrl = `${S3ObjUrl}/${id + previewMDX}`;
@@ -237,13 +211,22 @@ const FeaturedPost = () => {
     }
   };
 
-  console.log(user);
-
   return (
     <section className="w-[100%] flex flex-col items-center mt-[100px]">
       {user ? (
         <>
           <div className="w-[50%] pb-6">
+            <h1
+              style={{
+                fontSize: '24px',
+                fontWeight: 700,
+                marginBottom: 10,
+                color: 'red',
+              }}
+            >
+              {params.region}
+            </h1>
+
             <button onClick={() => signOut()}>로그아웃</button>
             <input
               ref={fileInputImgRef}
