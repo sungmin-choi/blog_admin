@@ -1,18 +1,36 @@
 import MainLayout from '@/components/layout';
 import FeaturedPost from '@/components/sections/featuredPost';
 import { Amplify } from 'aws-amplify';
-import { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { GetStaticProps, InferGetStaticPropsType } from 'next';
 import { getParameter } from 'service';
 
-export async function getServerSideProps() {
-  const res = await getParameter();
+export const getStaticProps: GetStaticProps = async () => {
+  try {
+    // 예시 API 호출: 실제 환경에 맞게 API 엔드포인트와 요청 구조를 수정해야 합니다.
+    const { data } = await getParameter();
 
-  return {
-    props: { res: res.data }, // 필요한 프롭스 반환
-  };
-}
+    // API로부터 받은 데이터를 props로 반환합니다.
+    return {
+      props: { res: data },
+    };
+  } catch (error) {
+    console.error('환경 설정 데이터를 불러오는 중 오류 발생:', error);
+    // 오류 발생 시, 기본값 또는 오류 페이지로 리다이렉트 등의 처리를 할 수 있습니다.
+    return {
+      props: { res: {} }, // 오류 처리: 빈 객체 또는 기본값을 반환
+    };
+  }
+};
 
-const Home = ({ res }: InferGetServerSidePropsType<GetServerSideProps>) => {
+// export async function getServerSideProps() {
+//   const res = await getParameter();
+
+//   return {
+//     props: { res: res.data }, // 필요한 프롭스 반환
+//   };
+// }
+
+const Home = ({ res }: InferGetStaticPropsType<typeof getStaticProps>) => {
   Amplify.configure(
     {
       Auth: {
@@ -43,7 +61,6 @@ const Home = ({ res }: InferGetServerSidePropsType<GetServerSideProps>) => {
   );
   return (
     <MainLayout>
-      {/*  */}
       <FeaturedPost params={res} />
     </MainLayout>
   );
